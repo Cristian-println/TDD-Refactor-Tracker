@@ -9,7 +9,8 @@ import java.util.List;
 
 public class GestorMetadatosTDD {
 
-    public boolean inyectarVeredicto(String rutaArchivo, String test, boolean estado, String revisor) {
+    public boolean inyectarVeredicto(String rutaArchivo, String test,
+                                      boolean estado, String revisor) {
         try {
             File archivo = new File(rutaArchivo);
 
@@ -18,7 +19,7 @@ public class GestorMetadatosTDD {
             }
 
             FileWriter escritor = new FileWriter(archivo, true);
-            String metadato = "\n\n<!-- tdd: " + test + "|" + estado + "|" + revisor + " -->";  
+            String metadato     = "\n\n<!-- tdd: " + test + "|" + estado + "|" + revisor + " -->";
             escritor.write(metadato);
             escritor.close();
 
@@ -33,29 +34,38 @@ public class GestorMetadatosTDD {
     public String extraerEtiquetaTooltip(String rutaArchivo) {
         try {
             List<String> lineas = Files.readAllLines(Path.of(rutaArchivo));
+            String ultimoVeredicto = null;
 
             for (String linea : lineas) {
 
-                if (linea.contains("<!-- tdd:")) {                                      
-                    String datosPuros = linea.replace("<!-- tdd:", "")                  
+                if (linea.contains("<!-- tdd:")) {
+                    String datosPuros = linea.replace("<!-- tdd:", "")
                                              .replace("-->", "")
                                              .trim();
                     String[] partes = datosPuros.split("\\|");
 
                     if (partes.length == 3) {
-                        String nombreTest   = partes[0].trim();
-                        String estadoStr    = partes[1].trim().equals("true") ? "Aprobado" : "Fallido";
+                        String nombreTest    = partes[0].trim();
+                        String estadoStr     = partes[1].trim().equals("true") ? "Aprobado" : "Fallido";
                         String nombreRevisor = partes[2].trim();
 
-                        return "Test: " + nombreTest + " | Estado: " + estadoStr + " | Revisor: " + nombreRevisor;
+                        if (!nombreRevisor.isEmpty() && !nombreRevisor.equals("pendiente")) {
+                            ultimoVeredicto = "Test: " + nombreTest
+                                            + " | Estado: " + estadoStr
+                                            + " | Revisor: " + nombreRevisor;
+                        }
                     }
                 }
+            }
+
+            if (ultimoVeredicto != null) {
+                return ultimoVeredicto;
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return "Sin metadatos de revisión";
+        return "Sin metadatos de revision";
     }
 }
